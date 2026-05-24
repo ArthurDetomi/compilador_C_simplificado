@@ -673,6 +673,7 @@ AST *parse_expressao(Parser *p) {
   return esquerda;
 }
 
+// Faz o parse de termos com multiplicação e divisão
 AST *parse_termo(Parser *p) {
   AST *esquerda = parse_fator(p);
 
@@ -695,6 +696,7 @@ AST *parse_termo(Parser *p) {
   return esquerda;
 }
 
+// Faz o parse de um fator da expressão
 AST *parse_fator(Parser *p) {
   Token *tk = token_atual(p);
 
@@ -707,6 +709,7 @@ AST *parse_fator(Parser *p) {
     return no;
   }
 
+  // Verifica literais da linguagem
   if (tk->type == INT_LITERAL || tk->type == FLOAT_LITERAL ||
       tk->type == CHAR_LITERAL || tk->type == STRING_LITERAL) {
     AST *no = criar_no_ast(AST_LITERAL, *tk);
