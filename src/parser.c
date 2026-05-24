@@ -238,7 +238,6 @@ AST *parse_declaracao_ou_funcao(Parser *p) {
 }
 
 AST *parse_funcao(Parser *p, Token tipo, Token nome) {
-
   AST *funcao = criar_no_ast(AST_FUNCAO, nome);
 
   adicionar_filho(funcao, criar_no_ast(AST_TIPO, tipo));
@@ -255,7 +254,6 @@ AST *parse_funcao(Parser *p, Token tipo, Token nome) {
 }
 
 AST *parse_lista_params(Parser *p) {
-
   Token tk_fake;
   tk_fake.lexema = "PARAMS";
   tk_fake.type = EOF_TOKEN;
@@ -287,7 +285,6 @@ AST *parse_lista_params(Parser *p) {
 }
 
 AST *parse_param(Parser *p) {
-
   Token *tk = token_atual(p);
 
   if (!eh_tipo(tk)) {
@@ -317,7 +314,6 @@ AST *parse_param(Parser *p) {
 }
 
 AST *parse_comando(Parser *p) {
-
   Token *tk = token_atual(p);
 
   if (tk == NULL)
@@ -355,7 +351,6 @@ AST *parse_comando(Parser *p) {
 }
 
 AST *parse_cmd_ident(Parser *p) {
-
   Token ident = *token_atual(p);
   avancar(p); // consome IDENT
 
@@ -370,7 +365,6 @@ AST *parse_cmd_ident(Parser *p) {
 }
 
 AST *parse_att(Parser *p, Token ident) {
-
   Token *tk_op = token_atual(p);
   if (tk_op == NULL || tk_op->type != OP_ATRIB) {
     marcar_erro_sintatico("Esperado '=' ou '++'/'--)' apos identificador",
@@ -394,13 +388,11 @@ AST *parse_att(Parser *p, Token ident) {
 }
 
 AST *parse_incr_decr(Parser *p, Token ident) {
-
   Token op = *token_atual(p); // ++ ou --
   avancar(p);                 // consome ++ / --
 
   consumir(p, SEP_PONTO_VIRGULA, "Esperado ';'");
 
-  // Representa como nó unário: filho esquerdo = operando
   AST *no = criar_no_ast(AST_UNOP, op);
   no->esquerda = criar_no_ast(AST_IDENTIFICADOR, ident);
 
@@ -408,7 +400,6 @@ AST *parse_incr_decr(Parser *p, Token ident) {
 }
 
 AST *parse_bloco(Parser *p) {
-
   Token tk_fake;
   tk_fake.lexema = "BLOCO";
   tk_fake.type = EOF_TOKEN;
@@ -436,7 +427,6 @@ AST *parse_bloco(Parser *p) {
 }
 
 AST *parse_dec(Parser *p) {
-
   Token tipo = *token_atual(p);
   avancar(p);
 
@@ -444,7 +434,6 @@ AST *parse_dec(Parser *p) {
   adicionar_filho(dec, criar_no_ast(AST_TIPO, tipo));
 
   do {
-
     Token *tk_ident = token_atual(p);
     if (tk_ident == NULL || tk_ident->type != IDENT) {
       marcar_erro_sintatico("Esperado identificador", tk_ident);
@@ -464,7 +453,6 @@ AST *parse_dec(Parser *p) {
     }
 
     adicionar_filho(dec, declarador);
-
   } while (match(p, SEP_VIRGULA));
 
   consumir(p, SEP_PONTO_VIRGULA, "Esperado ';'");
@@ -473,7 +461,6 @@ AST *parse_dec(Parser *p) {
 }
 
 AST *parse_for(Parser *p) {
-
   Token tk_for = *token_atual(p);
   avancar(p); // consome 'for'
 
@@ -558,7 +545,6 @@ AST *parse_for(Parser *p) {
 }
 
 AST *parse_return(Parser *p) {
-
   Token tk_ret = *token_atual(p);
   avancar(p);
 
@@ -576,7 +562,6 @@ AST *parse_return(Parser *p) {
 }
 
 AST *parse_cond(Parser *p) {
-
   Token tk_if = *token_atual(p);
   avancar(p);
 
@@ -601,7 +586,6 @@ AST *parse_cond(Parser *p) {
 }
 
 AST *parse_rep(Parser *p) {
-
   Token tk_while = *token_atual(p);
   avancar(p);
 
@@ -619,7 +603,6 @@ AST *parse_rep(Parser *p) {
 }
 
 AST *parse_expr_rel(Parser *p) {
-
   AST *esquerda = parse_expressao(p);
 
   Token *tk = token_atual(p);
@@ -640,13 +623,11 @@ AST *parse_expr_rel(Parser *p) {
 }
 
 AST *parse_expr_logica(Parser *p) {
-
   AST *esquerda = parse_expr_rel(p);
 
   Token *tk = token_atual(p);
 
   while (tk != NULL && (tk->type == OP_AND || tk->type == OP_OR)) {
-
     Token op = *tk;
     avancar(p);
 
@@ -664,13 +645,11 @@ AST *parse_expr_logica(Parser *p) {
 }
 
 AST *parse_expressao(Parser *p) {
-
   AST *esquerda = parse_termo(p);
 
   Token *tk = token_atual(p);
 
   while (tk != NULL && (tk->type == OP_SOMA || tk->type == OP_SUB)) {
-
     Token op = *tk;
     avancar(p);
 
@@ -688,13 +667,11 @@ AST *parse_expressao(Parser *p) {
 }
 
 AST *parse_termo(Parser *p) {
-
   AST *esquerda = parse_fator(p);
 
   Token *tk = token_atual(p);
 
   while (tk != NULL && (tk->type == OP_MULT || tk->type == OP_DIV)) {
-
     Token op = *tk;
     avancar(p);
 
@@ -712,7 +689,6 @@ AST *parse_termo(Parser *p) {
 }
 
 AST *parse_fator(Parser *p) {
-
   Token *tk = token_atual(p);
 
   if (tk == NULL)
