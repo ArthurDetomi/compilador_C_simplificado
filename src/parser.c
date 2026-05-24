@@ -36,12 +36,13 @@ void marcar_erro_sintatico(const char *msg, Token *tk) {
 }
 
 /*
-  Modo pânico procura o próximo token de sincronização ';'
+  Modo pânico procura o próximo token de sincronização ';' ou '}'
 */
 void sincronizar(Parser *p) {
   Token *tk = token_atual(p);
 
   while (tk != NULL && tk->type != EOF_TOKEN) {
+    // Avança na lista de tokens até encontrar o token de sincronismo
     if (tk->type == SEP_PONTO_VIRGULA || tk->type == SEP_FECHA_CHAVE) {
       avancar(p);
       return;
@@ -53,6 +54,7 @@ void sincronizar(Parser *p) {
   }
 }
 
+// Verifica se o token atual corresponde ao esperado
 int match(Parser *p, TokenType type) {
   Token *tk = token_atual(p);
 
@@ -65,6 +67,7 @@ int match(Parser *p, TokenType type) {
   return 0;
 }
 
+// Consome obrigatoriamente um token esperado ou marca erro sintático
 int consumir(Parser *p, TokenType type, const char *erro) {
   if (match(p, type))
     return 1;
@@ -140,13 +143,6 @@ int eh_incr_decr(Token *tk) {
   return (tk->type == OP_INCR || tk->type == OP_DECRE);
 }
 
-int proximo_eh(Parser *p, TokenType type) {
-  if (p->atual == NULL || p->atual->prox == NULL)
-    return 0;
-
-  return p->atual->prox->info.type == type;
-}
-
 // Inicia o parser setando o parser para raiz da lista de tokens
 void iniciar_parser(Parser *p, Lista *tokens) { p->atual = *tokens; }
 
@@ -165,6 +161,7 @@ AST *parse_programa(Parser *p) {
     if (tk == NULL || tk->type == EOF_TOKEN)
       break;
 
+    // Nessariamente o código tem que começar com um tipo para declarar a função
     if (!eh_tipo(tk)) {
       marcar_erro_sintatico("Esperado declaracao ou definicao de funcao", tk);
       sincronizar(p);
@@ -185,16 +182,21 @@ AST *parse_declaracao_ou_funcao(Parser *p) {
   avancar(p);
 
   Token *tk_nome = token_atual(p);
+
+  // Verifica ausência de identificador
   if (tk_nome == NULL || tk_nome->type != IDENT) {
     marcar_erro_sintatico("Esperado identificador apos tipo", tk_nome);
     sincronizar(p);
     return NULL;
   }
 
+  // Obtem o nome da declaração
   Token nome = *tk_nome;
   avancar(p);
 
   Token *tk = token_atual(p);
+
+  // verifica se a declaração é uma função se não é trata como declaração
   if (tk != NULL && tk->type == SEP_ABRE_PAR)
     return parse_funcao(p, tipo, nome);
 
@@ -211,6 +213,7 @@ AST *parse_declaracao_ou_funcao(Parser *p) {
 
   adicionar_filho(dec, declarador);
 
+  // Processa multiplas declarações separadas por virgula
   while (match(p, SEP_VIRGULA)) {
     Token *tk_extra = token_atual(p);
     if (tk_extra == NULL || tk_extra->type != IDENT) {
@@ -233,6 +236,7 @@ AST *parse_declaracao_ou_funcao(Parser *p) {
     adicionar_filho(dec, dec_extra);
   }
 
+  // Ao final da declaração obriga o ;
   consumir(p, SEP_PONTO_VIRGULA, "Esperado ';'");
   return dec;
 }
@@ -337,6 +341,7 @@ AST *parse_comando(Parser *p) {
   if (eh_return(tk))
     return parse_return(p);
 
+  // Exemplo no else { -> cai no bloco após o else
   if (tk->type == SEP_ABRE_CHAVE)
     return parse_bloco(p);
 
@@ -399,6 +404,7 @@ AST *parse_incr_decr(Parser *p, Token ident) {
   return no;
 }
 
+// Faz o parse de um bloco de comandos
 AST *parse_bloco(Parser *p) {
   Token tk_fake;
   tk_fake.lexema = "BLOCO";
@@ -576,6 +582,7 @@ AST *parse_cond(Parser *p) {
   if_node->direita = cmd_if;
 
   Token *tk = token_atual(p);
+  // Verifica existência de else
   if (eh_else(tk)) {
     avancar(p);
     AST *else_cmd = parse_comando(p);

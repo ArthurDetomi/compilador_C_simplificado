@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Cria um novo nó na AST
 AST *criar_no_ast(ASTTipo tipo, Token token) {
   AST *no = (AST *)malloc(sizeof(AST));
 
@@ -25,6 +26,7 @@ AST *criar_no_ast(ASTTipo tipo, Token token) {
   return no;
 }
 
+// Adiciona um filho ao nó pai
 void adicionar_filho(AST *pai, AST *filho) {
   if (!pai || !filho)
     return;
@@ -36,6 +38,7 @@ void adicionar_filho(AST *pai, AST *filho) {
   pai->filhos[pai->num_filhos - 1] = filho;
 }
 
+// Retorna o nome do tipo da AST
 const char *nome_ast(ASTTipo tipo) {
 
   switch (tipo) {
@@ -59,7 +62,7 @@ const char *nome_ast(ASTTipo tipo) {
     return "WHILE";
 
   case AST_BINOP:
-    return "BINOP";
+    return "OPERACAO BINARIA";
 
   case AST_LITERAL:
     return "LITERAL";
@@ -69,15 +72,38 @@ const char *nome_ast(ASTTipo tipo) {
 
   case AST_TIPO:
     return "TIPO";
+
+  case AST_FOR:
+    return "FOR";
+
+  case AST_UNOP:
+    return "OperacaoUnaria";
+
+  case AST_FUNCAO:
+    return "FUNCAO";
+
+  case AST_PARAMS:
+    return "PARAMETROS";
+
+  case AST_PARAM:
+    return "PARAMETRO";
+
+  case AST_DECLARADOR:
+    return "DECLARADOR";
+
+  case AST_RETURN:
+    return "RETURN";
   }
 
   return "DESCONHECIDO";
 }
 
+// Imprime a árvore de forma recursiva
 void imprimir_ast(AST *raiz, int nivel) {
   if (!raiz)
     return;
 
+  // identação visual espaço conforme o nível
   for (int i = 0; i < nivel; i++) {
     printf("  ");
   }
@@ -100,8 +126,8 @@ void imprimir_ast(AST *raiz, int nivel) {
   }
 }
 
+// Libera memória alocada para a arvore de forma recursiva
 void liberar_ast(AST *raiz) {
-
   if (!raiz)
     return;
 
