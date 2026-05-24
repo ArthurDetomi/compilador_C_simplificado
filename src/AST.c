@@ -1,19 +1,10 @@
-//====================================================
-// ast.c
-//====================================================
-
 #include "../include/AST.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-//====================================================
-// CRIAR NÓ
-//====================================================
-
 AST *criar_no_ast(ASTTipo tipo, Token token) {
-
   AST *no = (AST *)malloc(sizeof(AST));
 
   if (!no) {
@@ -34,12 +25,7 @@ AST *criar_no_ast(ASTTipo tipo, Token token) {
   return no;
 }
 
-//====================================================
-// ADICIONAR FILHO
-//====================================================
-
 void adicionar_filho(AST *pai, AST *filho) {
-
   if (!pai || !filho)
     return;
 
@@ -49,10 +35,6 @@ void adicionar_filho(AST *pai, AST *filho) {
 
   pai->filhos[pai->num_filhos - 1] = filho;
 }
-
-//====================================================
-// NOME DO TIPO
-//====================================================
 
 const char *nome_ast(ASTTipo tipo) {
 
@@ -92,12 +74,7 @@ const char *nome_ast(ASTTipo tipo) {
   return "DESCONHECIDO";
 }
 
-//====================================================
-// IMPRIMIR AST
-//====================================================
-
 void imprimir_ast(AST *raiz, int nivel) {
-
   if (!raiz)
     return;
 
@@ -119,14 +96,9 @@ void imprimir_ast(AST *raiz, int nivel) {
   imprimir_ast(raiz->direita, nivel + 1);
 
   for (int i = 0; i < raiz->num_filhos; i++) {
-
     imprimir_ast(raiz->filhos[i], nivel + 1);
   }
 }
-
-//====================================================
-// LIBERAR AST
-//====================================================
 
 void liberar_ast(AST *raiz) {
 
@@ -138,7 +110,6 @@ void liberar_ast(AST *raiz) {
   liberar_ast(raiz->direita);
 
   for (int i = 0; i < raiz->num_filhos; i++) {
-
     liberar_ast(raiz->filhos[i]);
   }
 

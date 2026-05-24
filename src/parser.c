@@ -1,7 +1,3 @@
-//====================================================
-// parser.c
-//====================================================
-
 #include "../include/parser.h"
 #include "../include/AST.h"
 
@@ -9,40 +5,27 @@
 #include <stdlib.h>
 #include <string.h>
 
-//====================================================
-// CONTADOR DE ERROS
-//====================================================
-
 int erros_sintaticos = 0;
 
-//====================================================
-// UTILITÁRIOS
-//====================================================
-
+// Retorna o token atual apontado pelo parser
 Token *token_atual(Parser *p) {
-
   if (p->atual == NULL)
     return NULL;
 
   return &p->atual->info;
 }
 
+// Avança o parser para o proximo Token da lista de tokens
 void avancar(Parser *p) {
-
   if (p->atual != NULL)
     p->atual = p->atual->prox;
 }
 
-//====================================================
-// ERRO
-//====================================================
-
-void erro_sintatico(const char *msg, Token *tk) {
-
+// Printa o erro sintático e incrementa contagem de erros
+void marcar_erro_sintatico(const char *msg, Token *tk) {
   erros_sintaticos++;
 
   if (tk == NULL) {
-
     printf("ERRO SINTATICO: %s\n", msg);
 
     return;
@@ -52,18 +35,14 @@ void erro_sintatico(const char *msg, Token *tk) {
          tk->pos.linha, tk->pos.coluna, tk->lexema);
 }
 
-//====================================================
-// PANIC MODE
-//====================================================
-
+/*
+  Modo pânico procura o próximo token de sincronização ';'
+*/
 void sincronizar(Parser *p) {
-
   Token *tk = token_atual(p);
 
   while (tk != NULL && tk->type != EOF_TOKEN) {
-
     if (tk->type == SEP_PONTO_VIRGULA || tk->type == SEP_FECHA_CHAVE) {
-
       avancar(p);
       return;
     }
@@ -74,16 +53,10 @@ void sincronizar(Parser *p) {
   }
 }
 
-//====================================================
-// MATCH
-//====================================================
-
 int match(Parser *p, TokenType type) {
-
   Token *tk = token_atual(p);
 
   if (tk != NULL && tk->type == type) {
-
     avancar(p);
 
     return 1;
@@ -92,28 +65,18 @@ int match(Parser *p, TokenType type) {
   return 0;
 }
 
-//====================================================
-// CONSUMIR
-//====================================================
-
 int consumir(Parser *p, TokenType type, const char *erro) {
-
   if (match(p, type))
     return 1;
 
-  erro_sintatico(erro, token_atual(p));
+  marcar_erro_sintatico(erro, token_atual(p));
 
   sincronizar(p);
 
   return 0;
 }
 
-//====================================================
-// PALAVRAS RESERVADAS
-//====================================================
-
 int eh_tipo(Token *tk) {
-
   if (tk == NULL)
     return 0;
 
@@ -121,11 +84,11 @@ int eh_tipo(Token *tk) {
     return 0;
 
   return (strcmp(tk->lexema, "int") == 0 || strcmp(tk->lexema, "float") == 0 ||
-          strcmp(tk->lexema, "char") == 0 || strcmp(tk->lexema, "void") == 0);
+          strcmp(tk->lexema, "char") == 0 || strcmp(tk->lexema, "void") == 0) ||
+         strcmp(tk->lexema, "string") == 0;
 }
 
 int eh_if(Token *tk) {
-
   if (tk == NULL)
     return 0;
 
@@ -133,7 +96,6 @@ int eh_if(Token *tk) {
 }
 
 int eh_else(Token *tk) {
-
   if (tk == NULL)
     return 0;
 
@@ -141,7 +103,6 @@ int eh_else(Token *tk) {
 }
 
 int eh_while(Token *tk) {
-
   if (tk == NULL)
     return 0;
 
@@ -149,7 +110,6 @@ int eh_while(Token *tk) {
 }
 
 int eh_for(Token *tk) {
-
   if (tk == NULL)
     return 0;
 
@@ -165,7 +125,6 @@ int eh_return(Token *tk) {
 }
 
 int eh_operador_relacional(Token *tk) {
-
   if (tk == NULL)
     return 0;
 
@@ -175,80 +134,39 @@ int eh_operador_relacional(Token *tk) {
 }
 
 int eh_incr_decr(Token *tk) {
-
   if (tk == NULL)
     return 0;
 
   return (tk->type == OP_INCR || tk->type == OP_DECRE);
 }
 
-//====================================================
-// LOOKAHEAD AUXILIAR
-// Verifica se o token seguinte ao atual é do tipo dado
-// sem avançar o parser.
-//====================================================
-
 int proximo_eh(Parser *p, TokenType type) {
-
   if (p->atual == NULL || p->atual->prox == NULL)
     return 0;
 
   return p->atual->prox->info.type == type;
 }
 
-//====================================================
-// PROTÓTIPOS
-//====================================================
-
-AST *parse_programa(Parser *p);
-AST *parse_declaracao_ou_funcao(Parser *p);
-AST *parse_funcao(Parser *p, Token tipo, Token nome);
-AST *parse_lista_params(Parser *p);
-AST *parse_param(Parser *p);
-AST *parse_comando(Parser *p);
-AST *parse_bloco(Parser *p);
-AST *parse_dec(Parser *p);
-AST *parse_cmd_ident(Parser *p);
-AST *parse_att(Parser *p, Token ident);
-AST *parse_incr_decr(Parser *p, Token ident);
-AST *parse_cond(Parser *p);
-AST *parse_rep(Parser *p);
-AST *parse_for(Parser *p);
-AST *parse_cmd_for(Parser *p);
-AST *parse_return(Parser *p);
-AST *parse_expr_logica(Parser *p);
-AST *parse_expr_rel(Parser *p);
-AST *parse_expressao(Parser *p);
-AST *parse_termo(Parser *p);
-AST *parse_fator(Parser *p);
-
-//====================================================
-// INICIALIZAÇÃO
-//====================================================
-
+// Inicia o parser setando o parser para raiz da lista de tokens
 void iniciar_parser(Parser *p, Lista *tokens) { p->atual = *tokens; }
 
-//====================================================
-// PROGRAMA
-//====================================================
-
 AST *parse_programa(Parser *p) {
-
   Token token_prog;
   token_prog.lexema = "PROGRAMA";
   token_prog.type = EOF_TOKEN;
 
+  // Cria o nó raiz
   AST *programa = criar_no_ast(AST_PROGRAMA, token_prog);
 
   while (1) {
-
     Token *tk = token_atual(p);
 
+    // Condição de parada
     if (tk == NULL || tk->type == EOF_TOKEN)
       break;
 
     if (!eh_tipo(tk)) {
-      erro_sintatico("Esperado declaracao ou definicao de funcao", tk);
+      marcar_erro_sintatico("Esperado declaracao ou definicao de funcao", tk);
       sincronizar(p);
       continue;
     }
@@ -262,20 +180,13 @@ AST *parse_programa(Parser *p) {
   return programa;
 }
 
-//====================================================
-// DECLARAÇÃO OU FUNÇÃO (escopo global)
-// tipo IDENT ( ...           → função
-// tipo IDENT [= expr] { , }  → declaração global
-//====================================================
-
 AST *parse_declaracao_ou_funcao(Parser *p) {
-
   Token tipo = *token_atual(p);
   avancar(p);
 
   Token *tk_nome = token_atual(p);
   if (tk_nome == NULL || tk_nome->type != IDENT) {
-    erro_sintatico("Esperado identificador apos tipo", tk_nome);
+    marcar_erro_sintatico("Esperado identificador apos tipo", tk_nome);
     sincronizar(p);
     return NULL;
   }
@@ -283,16 +194,13 @@ AST *parse_declaracao_ou_funcao(Parser *p) {
   Token nome = *tk_nome;
   avancar(p);
 
-  // Lookahead: '(' → definição de função
   Token *tk = token_atual(p);
   if (tk != NULL && tk->type == SEP_ABRE_PAR)
     return parse_funcao(p, tipo, nome);
 
-  // Declaração global com lista de declaradores
   AST *dec = criar_no_ast(AST_DECLARACAO, tipo);
   adicionar_filho(dec, criar_no_ast(AST_TIPO, tipo));
 
-  // Primeiro declarador (nome já consumido)
   AST *declarador = criar_no_ast(AST_DECLARADOR, nome);
   adicionar_filho(declarador, criar_no_ast(AST_IDENTIFICADOR, nome));
 
@@ -303,12 +211,10 @@ AST *parse_declaracao_ou_funcao(Parser *p) {
 
   adicionar_filho(dec, declarador);
 
-  // Declaradores adicionais separados por ','
   while (match(p, SEP_VIRGULA)) {
-
     Token *tk_extra = token_atual(p);
     if (tk_extra == NULL || tk_extra->type != IDENT) {
-      erro_sintatico("Esperado identificador", tk_extra);
+      marcar_erro_sintatico("Esperado identificador", tk_extra);
       sincronizar(p);
       return dec;
     }
@@ -331,10 +237,6 @@ AST *parse_declaracao_ou_funcao(Parser *p) {
   return dec;
 }
 
-//====================================================
-// FUNÇÃO   tipo nome ( params ) bloco
-//====================================================
-
 AST *parse_funcao(Parser *p, Token tipo, Token nome) {
 
   AST *funcao = criar_no_ast(AST_FUNCAO, nome);
@@ -351,10 +253,6 @@ AST *parse_funcao(Parser *p, Token tipo, Token nome) {
 
   return funcao;
 }
-
-//====================================================
-// LISTA DE PARÂMETROS
-//====================================================
 
 AST *parse_lista_params(Parser *p) {
 
@@ -388,16 +286,12 @@ AST *parse_lista_params(Parser *p) {
   return lista;
 }
 
-//====================================================
-// PARÂMETRO INDIVIDUAL   tipo identificador
-//====================================================
-
 AST *parse_param(Parser *p) {
 
   Token *tk = token_atual(p);
 
   if (!eh_tipo(tk)) {
-    erro_sintatico("Esperado tipo no parametro", tk);
+    marcar_erro_sintatico("Esperado tipo no parametro", tk);
     sincronizar(p);
     return NULL;
   }
@@ -407,7 +301,7 @@ AST *parse_param(Parser *p) {
 
   Token *tk_nome = token_atual(p);
   if (tk_nome == NULL || tk_nome->type != IDENT) {
-    erro_sintatico("Esperado identificador no parametro", tk_nome);
+    marcar_erro_sintatico("Esperado identificador no parametro", tk_nome);
     sincronizar(p);
     return NULL;
   }
@@ -422,10 +316,6 @@ AST *parse_param(Parser *p) {
   return param;
 }
 
-//====================================================
-// COMANDO
-//====================================================
-
 AST *parse_comando(Parser *p) {
 
   Token *tk = token_atual(p);
@@ -436,7 +326,6 @@ AST *parse_comando(Parser *p) {
   if (eh_tipo(tk))
     return parse_dec(p);
 
-  // IDENT pode ser: atribuição (x = ...) ou incremento (x++ / x--)
   if (tk->type == IDENT)
     return parse_cmd_ident(p);
 
@@ -455,21 +344,15 @@ AST *parse_comando(Parser *p) {
   if (tk->type == SEP_ABRE_CHAVE)
     return parse_bloco(p);
 
-  // Comando vazio
   if (tk->type == SEP_PONTO_VIRGULA) {
     avancar(p);
     return NULL;
   }
 
-  erro_sintatico("Comando invalido", tk);
+  marcar_erro_sintatico("Comando invalido", tk);
   sincronizar(p);
   return NULL;
 }
-
-//====================================================
-// COMANDO INICIADO POR IDENT
-// Decide entre:  x = expr;   ou   x++;   ou   x--;
-//====================================================
 
 AST *parse_cmd_ident(Parser *p) {
 
@@ -486,15 +369,12 @@ AST *parse_cmd_ident(Parser *p) {
   return parse_att(p, ident);
 }
 
-//====================================================
-// ATRIBUIÇÃO   (ident já consumido)   = expr ;
-//====================================================
-
 AST *parse_att(Parser *p, Token ident) {
 
   Token *tk_op = token_atual(p);
   if (tk_op == NULL || tk_op->type != OP_ATRIB) {
-    erro_sintatico("Esperado '=' ou '++'/'--)' apos identificador", tk_op);
+    marcar_erro_sintatico("Esperado '=' ou '++'/'--)' apos identificador",
+                          tk_op);
     sincronizar(p);
     return NULL;
   }
@@ -513,11 +393,6 @@ AST *parse_att(Parser *p, Token ident) {
   return att;
 }
 
-//====================================================
-// PÓS-INCREMENTO / PÓS-DECREMENTO   ident++ ;  ident-- ;
-// (ident já consumido)
-//====================================================
-
 AST *parse_incr_decr(Parser *p, Token ident) {
 
   Token op = *token_atual(p); // ++ ou --
@@ -531,10 +406,6 @@ AST *parse_incr_decr(Parser *p, Token ident) {
 
   return no;
 }
-
-//====================================================
-// BLOCO  { lista_cmds }
-//====================================================
 
 AST *parse_bloco(Parser *p) {
 
@@ -564,12 +435,6 @@ AST *parse_bloco(Parser *p) {
   return bloco;
 }
 
-//====================================================
-// DECLARAÇÃO LOCAL
-// tipo nome [= expr] { , nome [= expr] } ;
-// Ex: int a, b = 2, c;
-//====================================================
-
 AST *parse_dec(Parser *p) {
 
   Token tipo = *token_atual(p);
@@ -582,7 +447,7 @@ AST *parse_dec(Parser *p) {
 
     Token *tk_ident = token_atual(p);
     if (tk_ident == NULL || tk_ident->type != IDENT) {
-      erro_sintatico("Esperado identificador", tk_ident);
+      marcar_erro_sintatico("Esperado identificador", tk_ident);
       sincronizar(p);
       return dec;
     }
@@ -607,14 +472,6 @@ AST *parse_dec(Parser *p) {
   return dec;
 }
 
-//====================================================
-// FOR   for ( init ; cond ; update ) cmd
-//
-// init   → declaração (sem ';' extra) ou atribuição
-// cond   → expr_rel  (pode ser vazia)
-// update → ident++ / ident-- / ident = expr  (sem ';')
-//====================================================
-
 AST *parse_for(Parser *p) {
 
   Token tk_for = *token_atual(p);
@@ -624,33 +481,25 @@ AST *parse_for(Parser *p) {
 
   AST *for_node = criar_no_ast(AST_FOR, tk_for);
 
-  // ── inicialização ────────────────────────────────
-  // Pode ser declaração (int i = 0;) ou atribuição (i = 0;) ou vazia (;)
   Token *tk = token_atual(p);
   AST *init = NULL;
 
   if (tk != NULL && tk->type == SEP_PONTO_VIRGULA) {
-    // init vazia
     avancar(p);
 
   } else if (tk != NULL && eh_tipo(tk)) {
-    // declaração: int i = 0;   — parse_dec já consome o ';'
     init = parse_dec(p);
-
   } else if (tk != NULL && tk->type == IDENT) {
-    // atribuição: i = 0;   — consome IDENT e delega
     Token ident = *tk;
     avancar(p);
-    init = parse_att(p, ident); // parse_att consome o ';'
-
+    init = parse_att(p, ident);
   } else {
-    erro_sintatico("Esperado inicializacao no 'for'", tk);
+    marcar_erro_sintatico("Esperado inicializacao no 'for'", tk);
     sincronizar(p);
   }
 
-  adicionar_filho(for_node, init); // filho 0 — pode ser NULL
+  adicionar_filho(for_node, init);
 
-  // ── condição ─────────────────────────────────────
   tk = token_atual(p);
   AST *cond = NULL;
 
@@ -658,10 +507,8 @@ AST *parse_for(Parser *p) {
     cond = parse_expr_logica(p);
 
   consumir(p, SEP_PONTO_VIRGULA, "Esperado ';' apos condicao do 'for'");
-  adicionar_filho(for_node, cond); // filho 1 — pode ser NULL
+  adicionar_filho(for_node, cond);
 
-  // ── atualização ──────────────────────────────────
-  // Não termina com ';', termina com ')'
   tk = token_atual(p);
   AST *update = NULL;
 
@@ -670,51 +517,45 @@ AST *parse_for(Parser *p) {
     if (tk->type == IDENT) {
 
       Token ident = *tk;
-      avancar(p); // consome IDENT
+      avancar(p);
 
       Token *tk2 = token_atual(p);
 
       if (tk2 != NULL && eh_incr_decr(tk2)) {
-        // i++ ou i--  (sem ';' aqui pois termina em ')')
         Token op = *tk2;
         avancar(p);
         update = criar_no_ast(AST_UNOP, op);
         update->esquerda = criar_no_ast(AST_IDENTIFICADOR, ident);
 
       } else if (tk2 != NULL && tk2->type == OP_ATRIB) {
-        // i = expr  (sem ';')
         Token op_token = *tk2;
-        avancar(p); // consome '='
+        avancar(p);
         AST *expr = parse_expressao(p);
         update = criar_no_ast(AST_ATRIBUICAO, op_token);
         update->esquerda = criar_no_ast(AST_IDENTIFICADOR, ident);
         update->direita = expr;
 
       } else {
-        erro_sintatico("Esperado '++', '--' ou '=' na atualizacao do 'for'",
-                       tk2);
+        marcar_erro_sintatico(
+            "Esperado '++', '--' ou '=' na atualizacao do 'for'", tk2);
         sincronizar(p);
       }
 
     } else {
-      erro_sintatico("Esperado identificador na atualizacao do 'for'", tk);
+      marcar_erro_sintatico("Esperado identificador na atualizacao do 'for'",
+                            tk);
       sincronizar(p);
     }
   }
 
   consumir(p, SEP_FECHA_PAR, "Esperado ')' apos atualizacao do 'for'");
-  adicionar_filho(for_node, update); // filho 2 — pode ser NULL
+  adicionar_filho(for_node, update);
 
-  // ── corpo ─────────────────────────────────────────
   AST *corpo = parse_comando(p);
-  adicionar_filho(for_node, corpo); // filho 3
+  adicionar_filho(for_node, corpo);
 
   return for_node;
 }
-
-//====================================================
-// RETURN   return [expr] ;
-//====================================================
 
 AST *parse_return(Parser *p) {
 
@@ -733,10 +574,6 @@ AST *parse_return(Parser *p) {
 
   return ret;
 }
-
-//====================================================
-// IF   if ( expr_rel ) cmd [else cmd]
-//====================================================
 
 AST *parse_cond(Parser *p) {
 
@@ -763,10 +600,6 @@ AST *parse_cond(Parser *p) {
   return if_node;
 }
 
-//====================================================
-// WHILE   while ( expr_rel ) cmd
-//====================================================
-
 AST *parse_rep(Parser *p) {
 
   Token tk_while = *token_atual(p);
@@ -784,11 +617,6 @@ AST *parse_rep(Parser *p) {
 
   return while_node;
 }
-
-//====================================================
-// EXPRESSÃO RELACIONAL   expressao [op_rel expressao]
-// Ex: a + b > c * 2
-//====================================================
 
 AST *parse_expr_rel(Parser *p) {
 
@@ -810,13 +638,6 @@ AST *parse_expr_rel(Parser *p) {
 
   return binop;
 }
-
-//====================================================
-// EXPRESSÃO LÓGICA   expr_rel { (&&  ||) expr_rel }
-// Ex: a > b && b > a && c < a || c < d
-// Precedência: && tem maior prioridade que ||
-// Para simplificar tratamos ambos no mesmo nível (left-assoc).
-//====================================================
 
 AST *parse_expr_logica(Parser *p) {
 
@@ -842,10 +663,6 @@ AST *parse_expr_logica(Parser *p) {
   return esquerda;
 }
 
-//====================================================
-// EXPRESSÃO   termo { (+|-) termo }
-//====================================================
-
 AST *parse_expressao(Parser *p) {
 
   AST *esquerda = parse_termo(p);
@@ -870,10 +687,6 @@ AST *parse_expressao(Parser *p) {
   return esquerda;
 }
 
-//====================================================
-// TERMO   fator { (*|/) fator }
-//====================================================
-
 AST *parse_termo(Parser *p) {
 
   AST *esquerda = parse_fator(p);
@@ -897,10 +710,6 @@ AST *parse_termo(Parser *p) {
 
   return esquerda;
 }
-
-//====================================================
-// FATOR   IDENT | LITERAL | ( expr )
-//====================================================
 
 AST *parse_fator(Parser *p) {
 
@@ -929,7 +738,7 @@ AST *parse_fator(Parser *p) {
     return expr;
   }
 
-  erro_sintatico("Fator invalido", tk);
+  marcar_erro_sintatico("Fator invalido", tk);
   sincronizar(p);
   return NULL;
 }
