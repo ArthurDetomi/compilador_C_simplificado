@@ -23,5 +23,7 @@ int main(int argc, char *argv[]) {
 
   destroiLista(lista_tokens);
 
+  liberar_ast(ast);
+
   return 0;
 }

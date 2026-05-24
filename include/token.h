@@ -48,7 +48,8 @@ typedef enum {
   SEP_PONTO_VIRGULA, // ;
   SEP_VIRGULA,       // ,
   SEP_ABRE_COLCH,    // [
-  SEP_FECHA_COLCH
+  SEP_FECHA_COLCH,
+  EOF_TOKEN
 } TokenType;
 
 typedef struct {
