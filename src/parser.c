@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-int erros_sintaticos = 0;
-
 // Retorna o token atual apontado pelo parser
 Token *token_atual(Parser *p) {
   if (p->atual == NULL)
@@ -23,8 +21,6 @@ void avancar(Parser *p) {
 
 // Printa o erro sintático e incrementa contagem de erros
 void marcar_erro_sintatico(const char *msg, Token *tk) {
-  erros_sintaticos++;
-
   if (tk == NULL) {
     printf("ERRO SINTATICO: %s\n", msg);
 
