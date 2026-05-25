@@ -1,0 +1,7 @@
+int main() {
+
+  // Esperava o ';' mas encontrou 'return'
+  a = b + a
+
+  return 0;
+}

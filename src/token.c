@@ -62,6 +62,8 @@ const char *obter_nome_token(TokenType type) {
     return "SEP_ABRE_COLCH";
   case SEP_FECHA_COLCH:
     return "SEP_FECHA_COLCH";
+  case EOF_TOKEN:
+    return "EOF_TOKEN";
 
   default:
     return "DESCONHECIDO";
