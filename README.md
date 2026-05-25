@@ -58,7 +58,9 @@ O parser recebe como entrada a lista de tokens produzida pelo analisador léxico
 
 O analisador foi implementado utilizando a técnica de **Parser Descendente Recursivo (Recursive Descent Parser)**, onde cada função representa uma produção da gramática da linguagem.
 
-Além da validação sintática, o parser também constrói uma **AST (Abstract Syntax Tree)** durante o processo de análise, representando a estrutura hierárquica do programa fonte.
+Além da validação sintática, o parser também constrói uma **AST (Árvore sintática Abstrata)** durante o processo de análise, representando a estrutura hierárquica do programa fonte.
+
+O parser foi implementado de forma TOP-DOWN partindo do nó raiz até chegar nos nós folhas.
 
 O projeto possui:
 
