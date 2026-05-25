@@ -15,9 +15,7 @@ int main(int argc, char *argv[]) {
 
   Parser p;
 
-  iniciar_parser(&p, lista_tokens);
-
-  AST *ast = parse_programa(&p);
+  AST *ast = executar_analise_sintatica(&p, lista_tokens);
 
   imprimir_ast(ast, 0);
 

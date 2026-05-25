@@ -11,7 +11,7 @@ typedef struct {
 
 void iniciar_parser(Parser *p, Lista *tokens);
 
-AST *parse_programa(Parser *p);
+AST *executar_analise_sintatica(Parser *p, Lista *tokens);
 
 // HIDE
 AST *parse_declaracao_ou_funcao(Parser *p);
