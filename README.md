@@ -50,11 +50,10 @@ Todas as funções de coleta utilizam `malloc` e `realloc` para alocar a memóri
 
 ## 🛠 Estrutura de Dados
 
-Os tokens gerados são armazenados sequencialmente em uma **Lista Simplesmente Encadeada**, garantindo uso eficiente da memória. O ciclo de vida da memória é encerrado de forma segura no arquivo `main.c` com a função `destroiLista`, que varre a lista liberando os nós e os textos alocados.
+Os tokens gerados são armazenados sequencialmente em uma **Lista Simplesmente Encadeada**. O ciclo de vida da memória é encerrado de forma segura no arquivo `main.c` com a função `destroiLista`, que varre a lista liberando os nós e os textos alocados.
 
 # Analisador Sintático (Parser) em C
 
-Este projeto implementa a segunda fase de um compilador: o **Analisador Sintático**.
 O parser recebe como entrada a lista de tokens produzida pelo analisador léxico e verifica se a sequência de tokens segue as regras gramaticais da linguagem.
 
 O analisador foi implementado utilizando a técnica de **Parser Descendente Recursivo (Recursive Descent Parser)**, onde cada função representa uma produção da gramática da linguagem.
